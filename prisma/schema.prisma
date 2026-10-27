@@ -1,0 +1,55 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           String         @id @default(uuid())
+  name         String
+  email        String         @unique
+  passwordHash String
+  skillLevel   String         @default("Beginner")
+  createdAt    DateTime       @default(now())
+  paths        LearningPath[]
+}
+
+model LearningPath {
+  id              String    @id @default(uuid())
+  userId          String?
+  user            User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  goalTitle       String
+  skillLevel      String    @default("Beginner") // Beginner | Intermediate | Advanced
+  weeklyHours     Int       @default(15)
+  learningStyle   String    @default("Balanced") // Hands-On | Theoretical | Balanced
+  overallProgress Float     @default(0.0)
+  createdAt       DateTime  @default(now())
+  phases          Phase[]
+}
+
+model Phase {
+  id         String      @id @default(uuid())
+  pathId     String
+  path       LearningPath @relation(fields: [pathId], references: [id], onDelete: Cascade)
+  phaseOrder Int
+  title      String
+  duration   String      // e.g., "3 Weeks"
+  summary    String
+  milestones Milestone[]
+}
+
+model Milestone {
+  id             String    @id @default(uuid())
+  phaseId        String
+  phase          Phase     @relation(fields: [phaseId], references: [id], onDelete: Cascade)
+  title          String
+  category       String    @default("COURSE") // COURSE | EXERCISE | NEXT_STEP
+  details        String
+  resourceUrl    String?
+  estimatedHours Int       @default(4)
+  isCompleted    Boolean   @default(false)
+  completedAt    DateTime?
+}
